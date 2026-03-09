@@ -28,8 +28,9 @@ function activate(context) {
             terminal = vscode.window.createTerminal(terminalName);
         }
         terminal.show();
-        // Run without --json to get pretty colored output
-        terminal.sendText(`python "${scriptPath}"`);
+        const cfg = vscode.workspace.getConfiguration('cclimits');
+        const pythonPath = cfg.get('pythonPath') || 'python';
+        terminal.sendText(`"${pythonPath}" "${scriptPath}"`);
     });
     context.subscriptions.push(checkCmd);
 
@@ -212,7 +213,8 @@ async function updateStatusBar(logTrigger = false, bypassCache = false) {
     const enabled = config.get('enabledProviders') || [];
     const useCached = config.get('useCached') && !bypassCache;
     
-    let command = `python "${scriptPath}" --json`;
+    const pythonPath = config.get('pythonPath') || 'python';
+    let command = `"${pythonPath}" "${scriptPath}" --json`;
     if (useCached) command += ` --cached`;
 
     if (enabled.length > 0) {
