@@ -646,7 +646,7 @@ def get_gemini_credentials() -> dict | None:
                             temp_path.rename(oauth_path)
                         except Exception as e:
                             # Log warning but continue - in-memory token still works
-                            print(f"Warning: Could not save refreshed OAuth token: {e}")
+                            print(f"Warning: Could not save refreshed OAuth token: {e}", file=sys.stderr)
                             pass
         except:
             pass
@@ -1310,7 +1310,7 @@ Example Output:
         results["gemini"] = get_gemini_usage()
     if not skip_fetch and (check_all or args.zai):
         results["zai"] = get_zai_usage()
-    if check_all or args.openrouter:
+    if not skip_fetch and (check_all or args.openrouter):
         results["openrouter"] = get_openrouter_usage()
 
     # Always write cache for future --cached calls
