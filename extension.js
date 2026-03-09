@@ -232,6 +232,7 @@ async function updateStatusBar(logTrigger = false, bypassCache = false) {
     }, (error, stdout) => {
         if (error) {
             outputChannel.appendLine(`[Error] ${error.message}`);
+            statusBarItems.forEach(item => item.hide());
             fallbackStatusBarItem.show();
             return;
         }
@@ -334,6 +335,7 @@ async function updateStatusBar(logTrigger = false, bypassCache = false) {
             if (logTrigger) outputChannel.appendLine(stdout);
         } catch (e) {
             outputChannel.appendLine(`[Error] Parse failed: ${e.message}`);
+            statusBarItems.forEach(item => item.hide());
             fallbackStatusBarItem.show();
         }
     });

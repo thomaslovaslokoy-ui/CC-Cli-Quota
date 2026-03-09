@@ -159,7 +159,13 @@ def http_get(url: str, headers: dict) -> tuple[int, dict | str]:
                 except:
                     return resp.status, data
         except urllib.error.HTTPError as e:
-            return e.code, e.reason
+            try:
+                body = e.read().decode('utf-8')
+                return e.code, json.loads(body)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                return e.code, body if body else e.reason
+            except Exception:
+                return e.code, e.reason
         except Exception as e:
             return 0, str(e)
 
@@ -190,7 +196,13 @@ def http_post(url: str, headers: dict, body: dict) -> tuple[int, dict | str]:
                 except:
                     return resp.status, data
         except urllib.error.HTTPError as e:
-            return e.code, e.reason
+            try:
+                body = e.read().decode('utf-8')
+                return e.code, json.loads(body)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                return e.code, body if body else e.reason
+            except Exception:
+                return e.code, e.reason
         except Exception as e:
             return 0, str(e)
 
