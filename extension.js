@@ -229,9 +229,11 @@ async function updateStatusBar(logTrigger = false, bypassCache = false) {
             ZAI_API_KEY: config.get('zaiApiKey') || process.env.ZAI_API_KEY,
             OPENROUTER_API_KEY: config.get('openrouterApiKey') || process.env.OPENROUTER_API_KEY
         }
-    }, (error, stdout) => {
+    }, (error, stdout, stderr) => {
+        if (stderr) outputChannel.appendLine(`[Stderr] ${stderr}`);
         if (error) {
             outputChannel.appendLine(`[Error] ${error.message}`);
+            statusBarItems.forEach(item => item.hide());
             fallbackStatusBarItem.show();
             return;
         }
