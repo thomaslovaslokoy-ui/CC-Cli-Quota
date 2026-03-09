@@ -8,6 +8,15 @@ let outputChannel;
 let refreshTimer;
 const scriptPath = path.join(__dirname, 'cclimits.py');
 
+function shellQuote(value) {
+    return `"${String(value).replace(/(["\\$`])/g, '\\$1')}"`;
+}
+
+function getPythonPath(config) {
+    const configured = (config.get('pythonPath') || '').trim();
+    return configured || 'python';
+}
+
 /**
  * @param {vscode.ExtensionContext} context
  */
@@ -22,6 +31,8 @@ function activate(context) {
     context.subscriptions.push(fallbackStatusBarItem);
 
     let checkCmd = vscode.commands.registerCommand('cc-cli-quota.check', () => {
+        const config = vscode.workspace.getConfiguration('cclimits');
+        const pythonPath = getPythonPath(config);
         const terminalName = "AI Quotas";
         let terminal = vscode.window.terminals.find(t => t.name === terminalName);
         if (!terminal) {
@@ -29,7 +40,7 @@ function activate(context) {
         }
         terminal.show();
         // Run without --json to get pretty colored output
-        terminal.sendText(`python "${scriptPath}"`);
+        terminal.sendText(`${shellQuote(pythonPath)} ${shellQuote(scriptPath)}`);
     });
     context.subscriptions.push(checkCmd);
 
@@ -211,8 +222,9 @@ async function updateStatusBar(logTrigger = false, bypassCache = false) {
     const config = vscode.workspace.getConfiguration('cclimits');
     const enabled = config.get('enabledProviders') || [];
     const useCached = config.get('useCached') && !bypassCache;
+    const pythonPath = getPythonPath(config);
     
-    let command = `python "${scriptPath}" --json`;
+    let command = `${shellQuote(pythonPath)} ${shellQuote(scriptPath)} --json`;
     if (useCached) command += ` --cached`;
 
     if (enabled.length > 0) {
