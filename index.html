@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quick Local Server</title>
+  <style>body{font-family:sans-serif;background:#111;color:#eee;padding:40px;max-width:600px;margin:auto}</style>
+</head>
+<body>
+  <h2>Local file server (drag & drop mode)</h2>
+  <p>Drag your <code>index.html</code> file here — or any folder containing index.html</p>
+
+  <input type="file" webkitdirectory directory id="folder" multiple style="display:none" />
+  <button onclick="document.getElementById('folder').click()" style="padding:12px 24px;font-size:16px">Select folder or index.html</button>
+
+  <p id="status" style="margin-top:20px;color:#0f0"></p>
+
+  <script>
+  const status = document.getElementById('status');
+  document.getElementById('folder').onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    let url;
+    if (file.webkitRelativePath) {
+      // folder selected
+      const base = file.webkitRelativePath.split('/')[0];
+      const idx = Array.from(e.target.files).find(f => f.name === 'index.html' && f.webkitRelativePath.includes(base));
+      if (!idx) return status.textContent = 'No index.html found in folder ☹';
+      url = URL.createObjectURL(idx);
+    } else {
+      // single file
+      if (!file.name.endsWith('.html')) return status.textContent = 'Please select an .html file';
+      url = URL.createObjectURL(file);
+    }
+
+    status.innerHTML = `Opening <a href="${url}" target="_blank" style="color:#0af">${file.name || 'index.html'}</a><br>Right-click → Open in new tab if needed`;
+    window.open(url, '_blank');
+  };
+  </script>
+</body>
+</html>
