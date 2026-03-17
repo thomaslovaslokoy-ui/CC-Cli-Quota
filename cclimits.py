@@ -8,7 +8,7 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # Optional: use requests if available, fallback to urllib
@@ -115,7 +115,7 @@ def get_openrouter_usage() -> dict:
     headers = {"Authorization": f"Bearer {key}"}
     status, data = http_get("https://openrouter.ai/api/v1/credits", headers)
 
-    if status == 200 and isinstance(data, dict) and "data" in data:
+    if status == 200 and isinstance(data, dict) and isinstance(data.get("data"), dict):
         credits_data = data["data"]
         total_credits = float(credits_data.get("total_credits", 0))
         total_usage = float(credits_data.get("total_usage", 0))
@@ -867,10 +867,13 @@ def get_zai_usage() -> dict:
 
     # Get historical usage (last 7 days) for additional context
     now = datetime.now()
-    start_date = (now - __import__("datetime").timedelta(days=7)).strftime("%Y-%m-%d+00:00:00")
-    end_date = now.strftime("%Y-%m-%d+23:59:59")
-
-    usage_url = f"https://api.z.ai/api/monitor/usage/model-usage?startTime={start_date}&endTime={end_date}"
+    usage_url = (
+        "https://api.z.ai/api/monitor/usage/model-usage?"
+        + urllib.parse.urlencode({
+            "startTime": (now - timedelta(days=7)).strftime("%Y-%m-%d") + "T00:00:00",
+            "endTime": now.strftime("%Y-%m-%d") + "T23:59:59",
+        })
+    )
     status, data = http_get(usage_url, headers)
     if status == 200 and isinstance(data, dict) and data.get("success"):
         usage_data = data.get("data", {})
@@ -1310,7 +1313,7 @@ Example Output:
         results["gemini"] = get_gemini_usage()
     if not skip_fetch and (check_all or args.zai):
         results["zai"] = get_zai_usage()
-    if check_all or args.openrouter:
+    if not skip_fetch and (check_all or args.openrouter):
         results["openrouter"] = get_openrouter_usage()
 
     # Always write cache for future --cached calls
